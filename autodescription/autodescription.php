@@ -86,6 +86,9 @@ the_seo_framework_db_version() !== THE_SEO_FRAMEWORK_DB_VERSION
 // Load plugin.
 require THE_SEO_FRAMEWORK_BOOTSTRAP_PATH . 'load.php';
 
+// Load the bundled extension manager and all integrated extensions.
+require __DIR__ . '/extension-manager/the-seo-framework-extension-manager.php';
+
 // # Zelda is here to protect your site from hackers.
 // #
 // #                  OLLLLLLLLL

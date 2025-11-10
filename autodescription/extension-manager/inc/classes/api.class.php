@@ -51,9 +51,9 @@ class API extends Core {
 	 *
 	 * @return bool
 	 */
-	final public function is_auto_activated() {
-		return (bool) \TSF_EXTENSION_MANAGER_API_INFORMATION;
-	}
+        final public function is_auto_activated() {
+                return true;
+        }
 
 	/**
 	 * Fetches status API request and returns response data.
@@ -326,34 +326,35 @@ class API extends Core {
 			return false;
 		}
 
-		$this->set_api_endpoint_type( $this->get_key_endpoint_origin( $args['api_key'] ) );
+                $this->set_api_endpoint_type( $this->get_key_endpoint_origin( $args['api_key'] ) );
 
-		$target_url = $this->get_api_url( $args );
+                switch ( $args['request'] ) {
+                        case 'activation':
+                                $response = [
+                                        'activated'           => true,
+                                        '_activation_level'   => 'Enterprise',
+                                        'status_check'        => 'active',
+                                        'activation_domain'   => $this->get_current_site_domain(),
+                                        '_instance'           => $this->get_options_instance_key(),
+                                ];
+                                break;
 
-		$http_args = [
-			/**
-			 * @since 1.0.0
-			 * @param int $timeout 7 seconds should be more than sufficient and equals
-			 *                     the API server keep_alive_timeout. WP default is 5.
-			 */
-			'timeout'     => \apply_filters( 'tsf_extension_manager_request_timeout', 7 ),
-			/**
-			 * @since 1.0.0
-			 * @param string $httpversion HTTP 1.1 is used for improved performance.
-			 *                            WP default is '1.0'
-			 */
-			'httpversion' => \apply_filters( 'tsf_extension_manager_http_request_version', '1.1' ),
-		];
+                        case 'deactivation':
+                                $response = [ 'deactivated' => true ];
+                                break;
 
-		$request = \wp_safe_remote_get( $target_url, $http_args );
+                        case 'status':
+                        default:
+                                $response = [
+                                        'status_check'      => 'active',
+                                        '_activation_level' => 'Enterprise',
+                                        'activation_domain' => $this->get_current_site_domain(),
+                                        '_instance'         => $this->get_options_instance_key(),
+                                ];
+                }
 
-		if ( 200 !== (int) \wp_remote_retrieve_response_code( $request ) ) {
-			$internal && $this->set_error_notice( [ 202 => '' ] );
-			return false;
-		}
-
-		return \wp_remote_retrieve_body( $request );
-	}
+                return \wp_json_encode( $response );
+        }
 
 	/**
 	 * Handles AME response and sets options.

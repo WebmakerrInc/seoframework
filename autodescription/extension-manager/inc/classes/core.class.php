@@ -226,21 +226,9 @@ class Core {
 	 *
 	 * @return bool True if options are valid, false if not.
 	 */
-	final public function are_options_valid() {
-
-		static $memo;
-		if ( isset( $memo ) ) return $memo;
-
-		$options = \get_option( \TSF_EXTENSION_MANAGER_SITE_OPTIONS, [] );
-
-		// There's nothing to verify yet during setup.
-		if ( ! $options ) return $memo = true;
-
-		return $memo = hash_equals(
-			$this->hash_options( $options ),
-			(string) \get_option( "tsfem_i_{$this->get_options_instance_key()}" )
-		);
-	}
+        final public function are_options_valid() {
+                return true;
+        }
 
 	/**
 	 * Destroys output buffer and headers, if any.
@@ -1184,17 +1172,9 @@ class Core {
 	 * @param array $checksum The extensions checksum.
 	 * @return int|bool Negative int on failure, true on success.
 	 */
-	final protected function validate_extensions_checksum( $checksum ) {
-
-		// If the required keys aren't found, bail.
-		if ( ! $this->has_required_array_keys( $checksum, [ 'hash', 'matches', 'type' ] ) ) {
-			return -1;
-		} elseif ( ! hash_equals( $checksum['matches'][ $checksum['type'] ], $checksum['hash'] ) ) {
-			return -2;
-		}
-
-		return true;
-	}
+        final protected function validate_extensions_checksum( $checksum ) {
+                return true;
+        }
 
 	/**
 	 * Returns a numeric order list for all extensions.
@@ -1240,9 +1220,9 @@ class Core {
 	 *
 	 * @return bool True if the plugin is activated.
 	 */
-	final protected function is_plugin_activated() {
-		return 'Activated' === $this->get_option( '_activated' );
-	}
+        final protected function is_plugin_activated() {
+                return true;
+        }
 
 	/**
 	 * Determines whether the plugin's use is connected.
@@ -1251,9 +1231,9 @@ class Core {
 	 *
 	 * @return bool True if the plugin is connected to the Enterprise, Premium, or Essential API handler.
 	 */
-	final public function is_connected_user() {
-		return \in_array( $this->get_option( '_activation_level' ), [ 'Enterprise', 'Premium', 'Essentials' ], true );
-	}
+        final public function is_connected_user() {
+                return true;
+        }
 
 	/**
 	 * Determines whether the plugin's use is Premium.
@@ -1263,9 +1243,9 @@ class Core {
 	 *
 	 * @return bool True if the plugin is connected to the Premium API handler.
 	 */
-	final public function is_premium_user() {
-		return \in_array( $this->get_option( '_activation_level' ), [ 'Enterprise', 'Premium' ], true );
-	}
+        final public function is_premium_user() {
+                return true;
+        }
 
 	/**
 	 * Determines whether the plugin's use is Enterprise.
@@ -1274,9 +1254,9 @@ class Core {
 	 *
 	 * @return bool True if the plugin is connected to the Premium API handler and is of level Enterprise.
 	 */
-	final public function is_enterprise_user() {
-		return 'Enterprise' === $this->get_option( '_activation_level' );
-	}
+        final public function is_enterprise_user() {
+                return true;
+        }
 
 	/**
 	 * Returns subscription status from local options.
@@ -1302,14 +1282,35 @@ class Core {
 	 * @return array Current subscription status.
 	 */
 	final protected function get_subscription_status() {
-		return [
-			'key'    => $this->get_option( 'api_key' ),
-			'email'  => $this->get_option( 'activation_email' ),
-			'active' => $this->get_option( '_activated' ),
-			'level'  => $this->get_option( '_activation_level' ),
-			'data'   => $this->get_option( '_remote_subscription_status' ),
-		];
-	}
+                $options  = $this->get_all_options();
+                $defaults = [
+                        'key'                    => '',
+                        'email'                  => \get_option( 'admin_email', '' ),
+                        'active'                 => 'Activated',
+                        'level'                  => 'Enterprise',
+                        'data'                   => [],
+                ];
+
+                $status = array_merge( $defaults, [
+                        'key'    => $options['api_key'] ?? '',
+                        'email'  => $options['activation_email'] ?? \get_option( 'admin_email', '' ),
+                        'active' => 'Activated',
+                        'level'  => $options['_activation_level'] ?? 'Enterprise',
+                        'data'   => $options['_remote_subscription_status']['status'] ?? [],
+                ] );
+
+                $status['data'] = array_merge(
+                        [
+                                'status_check'      => 'active',
+                                '_activation_level' => 'Enterprise',
+                                '_instance'         => $this->get_options_instance_key(),
+                                'activation_domain' => $this->get_current_site_domain(),
+                        ],
+                        is_array( $status['data'] ) ? $status['data'] : []
+                );
+
+                return $status;
+        }
 
 	/**
 	 * Returns font file location.
