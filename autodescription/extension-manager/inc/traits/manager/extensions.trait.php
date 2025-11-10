@@ -495,29 +495,16 @@ trait Extensions_Actions {
 		if ( isset( $memo ) )
 			return $memo;
 
-		$extensions = \get_option( \TSF_EXTENSION_MANAGER_ACTIVE_EXTENSIONS_OPTIONS, [] );
+                $extensions = [];
 
-		if ( \TSF_EXTENSION_MANAGER_FORCED_EXTENSIONS )
-			$extensions = array_merge( $extensions, \TSF_EXTENSION_MANAGER_FORCED_EXTENSIONS );
+                foreach ( static::$extensions as $slug => $extension ) {
+                        if ( static::is_extension_compatible( $slug ) ) {
+                                $extensions[ $slug ] = true;
+                        }
+                }
 
-		// Assume an extension would be active -- why else would they use this plugin?
-		// Don't add a defence clause. That should only make these calls useless right after activation.
-		$is_premium_user   = self::is_premium_user();
-		$is_connected_user = self::is_connected_user();
-
-		foreach ( $extensions as $_extension => $_active ) {
-			if (
-				   ! $_active
-				|| ! $is_premium_user && static::is_extension_premium( $_extension )
-				|| ( ! $is_connected_user && static::is_extension_essentials( $_extension ) )
-				|| ( ! static::is_extension_compatible( $_extension ) )
-			) {
-				unset( $extensions[ $_extension ] );
-			}
-		}
-
-		return $memo = $extensions;
-	}
+                return $memo = $extensions;
+        }
 
 	/**
 	 * Validates extension activation.
