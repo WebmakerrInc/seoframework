@@ -9,6 +9,16 @@ namespace TSF_Extension_Manager;
 
 defined( 'TSF_EXTENSION_MANAGER_PRESENT' ) or die;
 
+if ( ! \function_exists( 'wp_generate_password' ) && \defined( 'ABSPATH' ) ) {
+        /**
+         * Load pluggable functions so wp_generate_password() becomes available.
+         *
+         * The extension manager bootstrap executes before WordPress loads the
+         * default pluggable file, so the function might not yet exist.
+         */
+        require_once ABSPATH . WPINC . '/pluggable.php';
+}
+
 ensure_unified_defaults();
 \add_action( 'init', __NAMESPACE__ . '\\ensure_unified_defaults', 0 );
 
